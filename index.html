@@ -1,15 +1,444 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>My Shop</title>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        header {
+            padding: 25px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.95);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid #263449;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .contact-btn {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: 0.25s;
+        }
+
+        .contact-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 80px 20px 50px;
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 7vw, 70px);
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        /* PRODUCTS */
+        .products-section {
+            max-width: 1200px;
+            margin: auto;
+            padding: 30px 20px 80px;
+        }
+
+        .section-title {
+            font-size: 30px;
+            margin-bottom: 30px;
+        }
+
+        #products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .product {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 18px;
+            padding: 25px;
+            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .product:hover {
+            transform: translateY(-7px);
+            border-color: #3b82f6;
+            box-shadow: 0 15px 35px rgba(59,130,246,0.15);
+        }
+
+        .product-image {
+            height: 170px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #334155, #475569);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+            font-size: 18px;
+        }
+
+        .product h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #94a3b8;
+            margin-bottom: 15px;
+        }
+
+        .price {
+            color: #60a5fa;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .stock {
+            color: #94a3b8;
+            margin-bottom: 18px;
+        }
+
+        .order-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #3b82f6;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .order-btn:hover {
+            background: #2563eb;
+        }
+
+        /* CONTACT POPUP */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid #475569;
+            padding: 35px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .modal-box h2 {
+            margin-bottom: 15px;
+        }
+
+        .phone {
+            font-size: 26px;
+            color: #60a5fa;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .call-btn,
+        .copy-btn,
+        .close-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .call-btn {
+            background: #22c55e;
+            color: white;
+        }
+
+        .copy-btn {
+            background: #475569;
+            color: white;
+        }
+
+        .close-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+            border-top: 1px solid #263449;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Welcome to My Shop</h1>
-    <p>Our products:</p>
 
-    <h2>White Shirt</h2>
-    <p>Price: 150 DH</p>
-    <button>Order</button>
+<header>
+    <div class="logo">🛍️ My Shop</div>
+
+    <button class="contact-btn" onclick="openContact()">
+        Contact Us
+    </button>
+</header>
+
+<section class="hero">
+    <h1>Welcome to My Shop</h1>
+    <p>Simple. Stylish. Affordable.</p>
+</section>
+
+<section class="products-section">
+
+    <h2 class="section-title">Our Products</h2>
+
+    <div id="products">
+        <p>Loading products...</p>
+    </div>
+
+</section>
+
+<!-- CONTACT POPUP -->
+<div class="modal" id="contactModal">
+
+    <div class="modal-box">
+
+        <h2>📞 Contact Us</h2>
+
+        <p>Need help? Give us a call!</p>
+
+        <div class="phone">
+            +212 778-833-268
+        </div>
+
+        <a href="tel:+212778833268">
+            <button class="call-btn">
+                📞 Call Us
+            </button>
+        </a>
+
+        <button class="copy-btn" onclick="copyNumber()">
+            📋 Copy Number
+        </button>
+
+        <button class="close-btn" onclick="closeContact()">
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+<footer>
+    © 2026 My Shop — All rights reserved.
+</footer>
+
+
+<script>
+
+    // ==============================
+    // SUPABASE CONNECTION
+    // ==============================
+
+    const SUPABASE_URL =
+        "https://oisolaijgylfoyuckcpx.supabase.co";
+
+    const SUPABASE_KEY =
+        "sb_publishable_5Vhk64wB221QrGRmo7lO5w_KAcDM53-";
+
+    const supabaseClient =
+        supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+    // ==============================
+    // LOAD PRODUCTS
+    // ==============================
+
+    async function loadProducts() {
+
+        const { data, error } =
+            await supabaseClient
+                .from("products")
+                .select("*")
+                .order("id");
+
+        const container =
+            document.getElementById("products");
+
+        if (error) {
+
+            console.error(error);
+
+            container.innerHTML =
+                "<p>❌ Could not load products.</p>";
+
+            return;
+        }
+
+        if (!data || data.length === 0) {
+
+            container.innerHTML =
+                "<p>No products available.</p>";
+
+            return;
+        }
+
+        container.innerHTML = "";
+
+        data.forEach(product => {
+
+            const card =
+                document.createElement("div");
+
+            card.className = "product";
+
+            card.innerHTML = `
+
+                <div class="product-image">
+                    ${product.image
+                        ? `<img src="${product.image}"
+                            style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
+                        : "🛍️ Product Image"
+                    }
+                </div>
+
+                <h3>${product.name}</h3>
+
+                <p class="description">
+                    ${product.description || ""}
+                </p>
+
+                <div class="price">
+                    ${product.price} DH
+                </div>
+
+                <div class="stock">
+                    Stock: ${product.stock}
+                </div>
+
+                <button class="order-btn"
+                    onclick="orderProduct('${product.name}')">
+                    Order
+                </button>
+
+            `;
+
+            container.appendChild(card);
+
+        });
+    }
+
+
+    // ==============================
+    // ORDER
+    // ==============================
+
+    function orderProduct(productName) {
+
+        alert(
+            "You selected: " +
+            productName +
+            "\n\nContact us to place your order!"
+        );
+
+    }
+
+
+    // ==============================
+    // CONTACT
+    // ==============================
+
+    function openContact() {
+
+        document.getElementById("contactModal")
+            .style.display = "flex";
+
+    }
+
+    function closeContact() {
+
+        document.getElementById("contactModal")
+            .style.display = "none";
+
+    }
+
+
+    // ==============================
+    // COPY PHONE NUMBER
+    // ==============================
+
+    function copyNumber() {
+
+        navigator.clipboard.writeText("0778833268");
+
+        alert("Phone number copied!");
+
+    }
+
+
+    // ==============================
+    // START
+    // ==============================
+
+    loadProducts();
+
+</script>
+
 </body>
 </html>
